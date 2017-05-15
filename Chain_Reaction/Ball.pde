@@ -1,86 +1,92 @@
 class Ball {
-  
+
   private PVector vec; 
-  int size;
+  int size, startingSize;
   float x, y; 
-  int state; // 0 = not growing 1 = growing -1 = shrinking
-  color c; 
-  
-  boolean shrinking; //this shows that the previous iteration of draw() had began shrinking balls if TRUE
+  int state; // 0 = not growing 1 = growing 2 = shrinking
+  color c;
   boolean dead; //this ball no longer should interact with anything if true 
-  
+
   //default constructor
   public Ball() {
-    size = 0; 
+    size = startingSize = 0; 
     x = 0; 
     y = 0; 
     vec = new PVector(0, 0);
     state = 0; 
-    c = color(0, 0, 0);      
+    c = color(0, 0, 0);
   }
-  
+
   //overload constructor 
   public Ball(int size, float x, float y, int state, PVector vec) {
-   this.size = size; 
-   this.x = x; 
-   this.y = y;
-   this.vec = vec; 
-   this.state = state; 
-   c = color((int) (random(256)), (int) (random(256)), (int) (random(256))); 
+    this.size = startingSize = size; 
+    this.x = x; 
+    this.y = y;
+    this.vec = vec; 
+    this.state = state; 
+    c = color((int) (random(256)), (int) (random(256)), (int) (random(256)));
   }
-  
+
   //draws the ellipse and moves it
   public void drawBall() {
     fill(c); 
     noStroke();
-    //if (isInCircle())
-    //grow(); 
+    if (state > 0) {
+      vec.x = 0; 
+      vec.y = 0; //stops mvmt of balls
+      grow(); 
+      shrink();
+    }
     ellipse(x, y, size, size);
     reflect(); 
     x += vec.x; 
-    y += vec.y; 
+    y += vec.y;
   }
-  
-  //mutators and accessors that are needed 
-  public int getSize(){
-    return size; 
-  }
-  public boolean getShrinking(){
-    return shrinking; 
-  }
-  public void setShrinking(boolean t){
-    shrinking = t; 
-  }
-  public boolean getDead(){
-    return dead; 
-  }
-  
-  
+
   //reflects balls appropriately
   private void reflect() {
     if (x <= 0 || x >= width)
       vec.x = -vec.x;
-     if (y <= 0 || y >= height)
-       vec.y = -vec.y; 
+    if (y <= 0 || y >= height)
+      vec.y = -vec.y;
   }
-  
-  private boolean isInCircle() {
-    return false; 
+
+  public boolean touching(Ball other) {
+    float distance = dist(x, y, other.x, other.y) - size/2 - other.size/2; //calculates distance betw 2 circles
+    if (distance <= 0)
+      return true;
+    else 
+      return false;
   }
-  
+
   public void grow() {
-    //state = 1; 
-    vec.x = 0; 
-    vec.y = 0; 
-    size += second()/3;  
+    if (state == 1 && frameCount%3 == 0) //grows size every 3 frames
+      size += 1;
+    if (size >= 2.5 * startingSize) //shrink if its 2.5 times greater than its original size
+      state = 2;
+  }
+
+  public void shrink() {
+    if (size <= 0)
+      dead = true; 
+    if (state == 2 && frameCount%3 == 0) //shrink every 3 frames
+      size -= 1.2;
+  }
+
+  //mutator for state
+  public int setState(int s) {
+   int oldState = state; 
+   state = s; 
+   return oldState;
   }
   
-  public void shrink(){
-    //state = -1; 
-    size -= second()/2; 
-    if(size < 2){
-      size = 0; 
-      dead = true; 
-    }
+  //accessor for state var
+  public int getState() {
+    return state;  
+  }
+  
+  //accessor for dead var 
+  public boolean isDead() {
+    return dead;
   }
 }
